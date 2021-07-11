@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller; 
+use App\Http\Controllers\Controller;
 use App\User;
 use App\Role;
 use App\SpendingUnit;
@@ -16,60 +16,60 @@ use Validator;
 class UserController extends Controller
 {
     public $successStatus = 200;
-    /** 
-     * login api 
-     * 
-     * @return \Illuminate\Http\Response 
-     */ 
-    public function login(){ 
-        if(Auth::attempt(['userName' => request('userName'), 'password' => request('password')])){ 
+    /**
+     * login api
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function login(){
+        if(Auth::attempt(['userName' => request('userName'), 'password' => request('password')])){
             $user = Auth::user();
 
             $success['token'] =  $user->createToken('MyApp')-> accessToken;
             return response()->json(['success' => $success], $this-> successStatus);
-        } 
-        else{ 
-            return response()->json(['error'=>'Datos incorrectos. Por favor revise su nombre de usuario y contraseña'], 401); 
-        } 
+        }
+        else{
+            return response()->json(['error'=>'Datos incorrectos. Por favor revise su nombre de usuario y contraseña'], 401);
+        }
     }
 
-    /** 
+    /**
      * Register api actualizado *s*
-     * 
-     * @return \Illuminate\Http\Response 
-     */ 
-    public function register(Request $request, $idRol) 
-    { 
-        $validator = Validator::make($request->all(), [ 
-            'userName' => 'required', 
-            'email' => 'required|email', 
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function register(Request $request, $idRol)
+    {
+        $validator = Validator::make($request->all(), [
+            'userName' => 'required',
+            'email' => 'required|email',
         ]);
-        if ($validator->fails()) { 
-            return response()->json(['error'=>$validator->errors()], 401);            
+        if ($validator->fails()) {
+            return response()->json(['error'=>$validator->errors()], 401);
         }
 
         $userEncontrado = User::where('ci',$request['ci'])->get();
         $valor = count($userEncontrado);
         if($valor == 1){
             $mensge = 'La cedula de identidad '.$request['ci'].' ya esta registrada ';
-            return response()->json(['message'=>$mensge], 200); 
+            return response()->json(['message'=>$mensge], 200);
         }
 
         $userEncontrado = User::where('email',$request['email'])->get();
         $valor = count($userEncontrado);
         if($valor == 1){
             $mensge = 'El email '.$request['email'].' ya esta registrado';
-            return response()->json(['message'=>$mensge], 200); 
+            return response()->json(['message'=>$mensge], 200);
         }
 
         $userEncontrado = User::where('userName',$request['userName'])->get();
         $valor = count($userEncontrado);
         if($valor == 1){
             $mensge = 'El nombre de usuario '.$request['userName'].' ya esta registrado';
-            return response()->json(['message'=>$mensge], 200); 
+            return response()->json(['message'=>$mensge], 200);
         }
 
-        $input = $request->all();  
+        $input = $request->all();
         $input['password'] = $input['ci'];
         $input['password'] = bcrypt($input['password']);
         $user = User::create($input);
@@ -77,15 +77,15 @@ class UserController extends Controller
         if($idRol!=0){
             $user->roles()->attach($idRol);
         }
-        return response()->json(['message'=>""], $this-> successStatus); 
+        return response()->json(['message'=>""], $this-> successStatus);
     }
-    /** 
+    /**
      * details api actualizado *s* a
-     * 
-     * @return \Illuminate\Http\Response 
-     */ 
-    public function details() 
-    { 
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function details()
+    {
         $user = Auth::user();
         //roles activos de un usuario
         $rolesactives = $user->roles()
@@ -111,7 +111,7 @@ class UserController extends Controller
             else{
                 $role['nameUnidadAdministrativa'] = null;
             }
-            
+
         }
         $user['roles']=$rolesactives;
         $nameallpermissions=array();
@@ -121,15 +121,15 @@ class UserController extends Controller
             }
         }
         $user['permissions']=$nameallpermissions;
-        return response()->json(['user' => $user], $this-> successStatus); 
+        return response()->json(['user' => $user], $this-> successStatus);
     }
-    /** 
-     * permisos de usuario 
-     * 
-     * @return \Illuminate\Http\Response 
-     */ 
-    public function permissions() 
-    { 
+    /**
+     * permisos de usuario
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function permissions()
+    {
         $user = Auth::user();
         $roles=$user->roles;
         $permissions = array();
@@ -142,7 +142,7 @@ class UserController extends Controller
                 array_push($permi,$permission->namePermission);
             }
         }
-        return response()->json(['permissions' => $permi], $this-> successStatus); 
+        return response()->json(['permissions' => $permi], $this-> successStatus);
     }
 
     public function roles(){
@@ -237,7 +237,7 @@ class UserController extends Controller
             $admin_new = $user->roles()
                             ->where(['role_id'=>2,'role_status'=>1,'administrative_unit_status'=>1,'global_status'=>1])
                             ->whereNotNull('administrative_unit_id')
-                            ->get();       
+                            ->get();
             $admin_new_valor = count($admin_new);
             if($admin_new_valor == 0){//usuarios con rol de jefe activo y sin unidad
                     $admin = ['id'=>$user->id,'name'=>$user->name,'lastName'=>$user->lastName,'1'=>$admin_new_valor];
@@ -246,8 +246,8 @@ class UserController extends Controller
             //$admin_new = $user->roles()
             //                ->where(['role_id'=>2,'role_status'=>1,'administrative_unit_status'=>0,'global_status'=>1])
             //                ->whereNull('administrative_unit_id')
-            //                ->get();       
-            //$admin_new_valor = count($admin_new);     
+            //                ->get();
+            //$admin_new_valor = count($admin_new);
             //if($admin_new_valor == 1){//usuarios con rol de jefe activo y sin unidad
             //    $admin = ['id'=>$user->id,'name'=>$user->name,'lastName'=>$user->lastName,'1'=>$admin_new_valor];
             //    array_push($resp,$admin);
@@ -286,7 +286,7 @@ class UserController extends Controller
             $admin_new = $user->roles()
                             ->where(['role_id'=>1,'role_status'=>1,'spending_unit_status'=>1,'global_status'=>1])
                             ->whereNotNull('spending_unit_id')
-                            ->get();       
+                            ->get();
             $admin_new_valor = count($admin_new);
             if($admin_new_valor == 0){//usuarios con rol de jefe activo y sin unidad
                     $admin = ['id'=>$user->id,'name'=>$user->name,'lastName'=>$user->lastName];
@@ -295,8 +295,8 @@ class UserController extends Controller
             //$admin_new = $user->roles()
             //                ->where(['role_id'=>1,'role_status'=>1,'spending_unit_status'=>0,'global_status'=>1])
             //                ->whereNull('spending_unit_id')
-            //                ->get();       
-            //$admin_new_valor = count($admin_new);     
+            //                ->get();
+            //$admin_new_valor = count($admin_new);
             //if($admin_new_valor == 1){//usuarios con rol de jefe activo y sin unidad
             //    $admin = ['id'=>$user->id,'name'=>$user->name,'lastName'=>$user->lastName,'id_role_user'=>$user->pivot->id,'1'=>1];
             //    array_push($resp2,$admin);
@@ -317,7 +317,7 @@ class UserController extends Controller
         }
         return response()->json(['users'=>$resp2], $this-> successStatus);
     }
-    
+
     /**
      * Devuelve todos los usuarios pertenecientes a una unidad administrativa *s* c
      *
@@ -420,7 +420,7 @@ class UserController extends Controller
              $valor = count($userHaveroles);
              if($valor==0){
                 array_push($usersOutUnit,$user);
-             }            
+             }
              else{//usuario perteneciente a la unidad
                 $userWithUnit = $user->roles()
                         ->where(['administrative_unit_id'=>$id,'administrative_unit_status'=>1,'global_status'=>1])
@@ -428,7 +428,7 @@ class UserController extends Controller
                 $valort = count($userWithUnit);
                 if($valort==0){
                    array_push($usersOutUnit,$user);
-                } 
+                }
              }
         }
         return response()->json(['users'=>$usersOutUnit], $this-> successStatus);
@@ -449,7 +449,7 @@ class UserController extends Controller
              $valor = count($userHaveroles);
              if($valor==0){
                 array_push($usersOutUnit,$user);
-             }            
+             }
              else{//usuario perteneciente a la unidad
                 $userWithUnit = $user->roles()
                         ->where(['spending_unit_id'=>$id,'spending_unit_status'=>1,'global_status'=>1])
@@ -457,7 +457,7 @@ class UserController extends Controller
                 $valort = count($userWithUnit);
                 if($valort==0){
                    array_push($usersOutUnit,$user);
-                } 
+                }
              }
         }
         return response()->json(['users'=>$usersOutUnit], $this-> successStatus);
